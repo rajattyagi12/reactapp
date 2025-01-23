@@ -1,0 +1,47 @@
+name: Deploy to EC2 and Setup HTTPD
+
+on:
+  push:
+    branches:
+      - master # Trigger deployment on push to the master branch
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+        env:
+          EC2_SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+
+      - name: Add EC2 host to known_hosts
+        run: |
+          ssh-keyscan -H 54.205.7.212 >> ~/.ssh/known_hosts
+
+      - name: Install HTTPD and deploy code to EC2
+        run: |
+          ssh -o StrictHostKeyChecking=no ec2-user@54.205.7.212 << 'EOF'
+            # Update package list and install httpd (Apache)
+            sudo yum update -y
+            sudo yum install -y httpd
+
+            # Start and enable httpd service
+            sudo systemctl start httpd
+            sudo systemctl enable httpd
+
+            # Remove the default index.html if it exists
+            sudo rm -rf /var/www/html/*
+
+            # Copy the code from the GitHub repository to the /var/www/html directory
+            sudo cp -r /home/ec2-user/app/* /var/www/html/
+
+            # Restart Apache service to apply changes
+            sudo systemctl restart httpd
+          EOF
