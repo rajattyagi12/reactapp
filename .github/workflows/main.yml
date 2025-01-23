@@ -3,7 +3,7 @@ name: Deploy to EC2 and Setup HTTPD
 on:
   push:
     branches:
-      - main # Trigger deployment on push to the main branch
+      - main  # Trigger deployment on push to the main branch
 
 jobs:
   deploy:
@@ -25,22 +25,36 @@ jobs:
         run: |
           ssh-keyscan -H 54.205.7.212 >> ~/.ssh/known_hosts
 
-      - name: Install HTTPD and deploy code to EC2
+      - name: Deploy code directly to EC2
         run: |
           ssh -o StrictHostKeyChecking=no ec2-user@54.205.7.212 << 'EOF'
-            # Update package list and install httpd (Apache)
+            # Update package list and install git and httpd (Apache)
             sudo yum update -y
-            sudo yum install -y httpd
+            sudo yum install -y git httpd
 
-            # Start and enable httpd service
-            sudo systemctl start httpd
-            sudo systemctl enable httpd
+            # Clone the repository from GitHub
+            cd /home/ec2-user
+            git clone https://github.com/rajattyagi12/reactapp.git app
+
+            # Change to the app directory
+            cd app
+
+            # Install dependencies (for React app, we'll assume it's using npm)
+            sudo yum install -y nodejs
+            sudo npm install
+
+            # Build the React app for production
+            sudo npm run build
 
             # Remove the default index.html if it exists
             sudo rm -rf /var/www/html/*
 
-            # Copy the code from the GitHub repository to the /var/www/html directory
-            sudo cp -r /home/ec2-user/app/* /var/www/html/
+            # Copy the built React app to the web server directory
+            sudo cp -r /home/ec2-user/app/build/* /var/www/html/
+
+            # Start and enable httpd service
+            sudo systemctl start httpd
+            sudo systemctl enable httpd
 
             # Restart Apache service to apply changes
             sudo systemctl restart httpd
