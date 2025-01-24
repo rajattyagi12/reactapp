@@ -13,12 +13,12 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Deploy to server using password
+    - name: Deploy to server using SSH key
       uses: appleboy/ssh-action@v0.1.1
       with:
         host: ${{ secrets.DEPLOY_SERVER_IP }}         # Server IP
         username: gynicftp                           # Server user
-        password: ${{ secrets.DEPLOY_SERVER_PASSWORD }}  # Password stored in GitHub secrets
+        key: ${{ secrets.DEPLOY_SERVER_SSH_KEY }}     # SSH private key from GitHub secrets
         port: 22                                      # Default SSH port
         script: |
           # Ensure the directory exists on the server
