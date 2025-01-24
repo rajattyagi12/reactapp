@@ -20,13 +20,13 @@ jobs:
 
     - name: Ensure the directory exists on the server
       run: |
-        ssh -o StrictHostKeyChecking=no ${{ secrets.EC2-USER }}@100.27.216.122 << 'EOF'
+        ssh -o StrictHostKeyChecking=no ${{ secrets.ec2-user }}@100.27.216.122 << 'EOF'
           mkdir -p /var/www/html/gynic/gynik
         EOF
 
     - name: Deploy code using rsync
       run: |
-        rsync -avz --exclude='.git*' --exclude='node_modules/' ./ ${{ secrets.EC2_USER }}@100.27.216.122:/var/www/html/gynic/gynik/
+        rsync -avz --exclude='.git*' --exclude='node_modules/' ./ ${{ secrets.ec2-user }}@100.27.216.122:/var/www/html/gynic/gynik/
       env:
         DEBUG: true  # Enable debugging to get detailed logs
 
