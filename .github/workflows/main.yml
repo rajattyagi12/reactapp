@@ -1,61 +1,32 @@
-name: Deploy to EC2 and Setup HTTPD
+name: Deploy to Server
 
 on:
   push:
     branches:
-      - main  # Trigger deployment on push to the main branch
+      - master  # Trigger only on changes to the master branch
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+    - name: Checkout code
+      uses: actions/checkout@v2
 
-      - name: Set up SSH key
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-        env:
-          EC2_SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+    - name: Deploy to server using password
+      uses: appleboy/ssh-action@v0.1.1
+      with:
+        host: ${{ secrets.DEPLOY_SERVER_IP }}         # Server IP
+        username: gynicftp                           # Server user
+        password: ${{ secrets.DEPLOY_SERVER_PASSWORD }}  # Password stored in GitHub secrets
+        port: 22                                      # Default SSH port
+        script: |
+          # Ensure the directory exists on the server
+          mkdir -p /var/www/html/gynic/gynik
 
-      - name: Add EC2 host to known_hosts
-        run: |
-          ssh-keyscan -H 54.205.7.212 >> ~/.ssh/known_hosts
-
-      - name: Deploy code directly to EC2
-        run: |
-          ssh -o StrictHostKeyChecking=no ec2-user@54.205.7.212 << 'EOF'
-            # Update package list and install git and httpd (Apache)
-            sudo yum update -y
-            sudo yum install -y git httpd
-
-            # Clone the repository from GitHub
-            cd /home/ec2-user
-            git clone https://github.com/rajattyagi12/reactapp.git app
-
-            # Change to the app directory
-            cd app
-
-            # Install dependencies (for React app, we'll assume it's using npm)
-            sudo yum install -y nodejs
-            sudo npm install
-
-            # Build the React app for production
-            sudo npm run build
-
-            # Remove the default index.html if it exists
-            sudo rm -rf /var/www/html/*
-
-            # Copy the built React app to the web server directory
-            sudo cp -r /home/ec2-user/app/* /var/www/html/
-
-            # Start and enable httpd service
-            sudo systemctl start httpd
-            sudo systemctl enable httpd
-
-            # Restart Apache service to apply changes
-            sudo systemctl restart httpd
-          EOF
+          # Use rsync to deploy code to the server without --delete flag
+          rsync -avz ./ /var/www/html/gynic/gynik/
+          
+    - name: Clean up
+      run: |
+        echo "Deployment completed successfully!"
