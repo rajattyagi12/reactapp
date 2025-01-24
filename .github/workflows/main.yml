@@ -12,6 +12,7 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
+        # This checks out the repository code so that it can be deployed to the EC2 instance
 
       - name: Set up SSH
         run: |
@@ -19,17 +20,17 @@ jobs:
           echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" > private_key.pem
           chmod 600 private_key.pem
 
-      - name: Ensure the directory exists on the server
+      - name: Ensure the directory exists on the server (switch to gynicftp)
         run: |
-          ssh -i private_key.pem -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
-            mkdir -p /var/www/html/gynic/gynik
+          sshpass -p "${{ secrets.EC2_PASSWORD }}" ssh -i private_key.pem -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+            # Switch to the gynicftp user using password and ensure the directory exists
+            sudo -u gynicftp mkdir -p /var/www/html/gynic/gynik
+            sudo -u gynicftp chown -R gynicftp:gynicftp /var/www/html/gynic/gynik/
           EOF
 
-      - name: Deploy code using rsync
+      - name: Deploy code using rsync (switch to gynicftp)
         run: |
-          rsync -avz --exclude='.git*' --exclude='node_modules/' -e "ssh -i private_key.pem -o StrictHostKeyChecking=no" ./ ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/var/www/html/gynic/gynik/
-        env:
-          DEBUG: true  # Enable debugging to get detailed logs
+          sshpass -p "${{ secrets.EC2_PASSWORD }}" rsync -avz --exclude='.git*' --exclude='node_modules/' -e "sshpass -p '${{ secrets.EC2_PASSWORD }}' ssh -i private_key.pem -o StrictHostKeyChecking=no" ./ ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/var/www/html/gynic/gynik/
 
       - name: Clean up
         run: |
