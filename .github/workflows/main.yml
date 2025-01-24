@@ -1,9 +1,9 @@
-name: Deploy to Server
+name: Deploy to EC2
 
 on:
   push:
     branches:
-      - main  # Trigger only on changes to the main branch
+      - main  # Trigger on push to main branch
 
 jobs:
   deploy:
@@ -13,20 +13,23 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Deploy to server using SSH key
-      uses: appleboy/ssh-action@v0.1.1
+    - name: Set up SSH
+      uses: webfactory/ssh-agent@v0.5.3
       with:
-        host: ${{ secrets.DEPLOY_SERVER_IP }}          # Server IP
-        username: ec2-user                            # SSH user for EC2 instance
-        key: ${{ secrets.DEPLOY_SERVER_SSH_KEY }}      # PEM private key stored in GitHub Secrets
-        port: 22                                       # Default SSH port
-        script: |
-          # Ensure the directory exists on the server
-          mkdir -p /var/www/html/gynic/gynik
+        ssh-private-key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
 
-          # Use rsync to deploy code to the server without --delete flag
-          rsync -avz ./ /var/www/html/gynic/gynik/
-          
+    - name: Ensure the directory exists on the server
+      run: |
+        ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@100.27.216.122 << 'EOF'
+          mkdir -p /var/www/html/gynic/gynik
+        EOF
+
+    - name: Deploy code using rsync
+      run: |
+        rsync -avz --exclude='.git*' --exclude='node_modules/' ./ ${{ secrets.EC2_USER }}@100.27.216.122:/var/www/html/gynic/gynik/
+      env:
+        DEBUG: true  # Enable debugging to get detailed logs
+
     - name: Clean up
       run: |
         echo "Deployment completed successfully!"
