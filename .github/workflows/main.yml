@@ -25,19 +25,11 @@ jobs:
       run: |
         # SSH into the EC2 instance and deploy the code
         ssh -o StrictHostKeyChecking=no ec2-user@${{ secrets.SERVER_IP }} << 'EOF'
-          # Check if Git is installed, and install it if not
-          if ! command -v git &> /dev/null
-          then
-            echo "Git not found, installing..."
-            sudo yum install -y git  # For Amazon Linux
-            # sudo apt-get install git  # For Ubuntu (uncomment if using Ubuntu on EC2)
-          fi
-
           # Navigate to the directory where your code is located
           cd /var/www/html/gynic/gynic
 
-          # Pull the latest changes from the repository (if applicable)
-          git pull origin main
+          # clone the latest changes from the repository (if applicable)
+          git clone https://github.com/rajattyagi12/reactapp.git
 
           # Any additional deployment steps (e.g., restart services, run migrations)
           # Example: Restarting a web server (e.g., Apache, Nginx)
