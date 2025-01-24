@@ -34,6 +34,9 @@ jobs:
           # Copy files from /var/www/html/gynic/gynic/ to /var/www/html/gynic/gynik/
           sudo cp -r /var/www/html/gynic/reactapp/* /var/www/html/gynic/gynik/
 
+          # Remove the cloned reactapp directory after copying the files
+          sudo rm -rf /var/www/html/gynic/reactapp
+
           # Any additional deployment steps (e.g., restart services, run migrations)
           # Example: Restarting a web server (e.g., Apache, Nginx)
           sudo systemctl restart httpd
