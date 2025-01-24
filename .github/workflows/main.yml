@@ -26,7 +26,7 @@ jobs:
         # SSH into the EC2 instance and deploy the code
         ssh -o StrictHostKeyChecking=no ec2-user@${{ secrets.SERVER_IP }} << 'EOF'
           # Navigate to the directory where your code is located
-          cd /var/www/html/gynic/gynic
+          cd /var/www/html/gynic/gynik
 
           # clone the latest changes from the repository (if applicable)
           git clone https://github.com/rajattyagi12/reactapp.git
