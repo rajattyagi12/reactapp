@@ -13,13 +13,19 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
+    - name: Set up SSH key
+      run: |
+        # Save the private key to a file
+        echo "${{ secrets.DEPLOY_SERVER_SSH_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa  # Set appropriate permissions
+
     - name: Deploy to server using SSH key
       uses: appleboy/ssh-action@v0.1.1
       with:
-        host: ${{ secrets.DEPLOY_SERVER_IP }}         # Server IP
-        username: gynicftp                           # Server user
-        key: ${{ secrets.DEPLOY_SERVER_SSH_KEY }}     # SSH private key from GitHub secrets
-        port: 22                                      # Default SSH port
+        host: ${{ secrets.DEPLOY_SERVER_IP }}          # Server IP
+        username: ec2-user                            # SSH user for EC2 instance
+        key: ${{ secrets.DEPLOY_SERVER_SSH_KEY }}      # PEM private key stored in GitHub Secrets
+        port: 22                                       # Default SSH port
         script: |
           # Ensure the directory exists on the server
           mkdir -p /var/www/html/gynic/gynik
