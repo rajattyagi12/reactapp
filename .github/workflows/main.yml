@@ -1,0 +1,40 @@
+name: Deploy to EC2 Instance
+
+on:
+  push:
+    branches:
+      - main  # Trigger deployment only when there's a push to the 'main' branch
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    # Checkout code from repository
+    - name: Checkout Code
+      uses: actions/checkout@v2
+
+    # Set up SSH agent
+    - name: Set up SSH
+      uses: webfactory/ssh-agent@v0.5.3
+      with:
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+    # Deploy to EC2 instance
+    - name: Deploy to EC2 instance
+      run: |
+        # SSH into the EC2 instance and deploy the code
+        ssh -o StrictHostKeyChecking=no ec2-user@${{ secrets.SERVER_IP }} << 'EOF'
+          # Navigate to the directory where your code is located
+          cd /var/www/html/gynic/gynic
+
+          # Pull the latest changes from the repository (if applicable)
+          git pull origin main
+
+          # Any additional deployment steps (e.g., restart services, run migrations)
+          # Example: Restarting a web server (e.g., Apache, Nginx)
+          sudo systemctl restart httpd
+
+          # Or, if you need to run migrations or any other scripts:
+          # ./deploy-script.sh
+        EOF
