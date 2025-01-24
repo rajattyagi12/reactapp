@@ -29,7 +29,7 @@ jobs:
           cd /var/www/html/gynic/gynik
 
           # clone the latest changes from the repository (if applicable)
-          git clone https://github.com/rajattyagi12/reactapp.git
+          sudo git clone https://github.com/rajattyagi12/reactapp.git
 
           # Any additional deployment steps (e.g., restart services, run migrations)
           # Example: Restarting a web server (e.g., Apache, Nginx)
