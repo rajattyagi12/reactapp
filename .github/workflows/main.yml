@@ -26,10 +26,13 @@ jobs:
         # SSH into the EC2 instance and deploy the code
         ssh -o StrictHostKeyChecking=no ec2-user@${{ secrets.SERVER_IP }} << 'EOF'
           # Navigate to the directory where your code is located
-          cd /var/www/html/gynic/gynik
+          cd /var/www/html/gynic
 
-          # clone the latest changes from the repository (if applicable)
+          # Clone the repository
           sudo git clone https://github.com/rajattyagi12/reactapp.git
+
+          # Copy files from /var/www/html/gynic/gynic/ to /var/www/html/gynic/gynik/
+          sudo cp -r /var/www/html/gynic/reactapp/* /var/www/html/gynic/gynik/
 
           # Any additional deployment steps (e.g., restart services, run migrations)
           # Example: Restarting a web server (e.g., Apache, Nginx)
