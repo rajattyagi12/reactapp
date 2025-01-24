@@ -1,0 +1,33 @@
+name: Deploy to Server
+
+on:
+  push:
+    branches:
+      - master  # Trigger only on changes to the master branch
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Deploy to server using password
+      uses: appleboy/ssh-action@v0.1.1
+      with:
+        host: ${{ secrets.DEPLOY_SERVER_IP }}         # Server IP
+        username: gynicftp                           # Server user
+        password: ${{ secrets.DEPLOY_SERVER_PASSWORD }}  # Password stored in GitHub secrets
+        port: 22                                      # Default SSH port
+        script: |
+          # Ensure the directory exists on the server
+          mkdir -p /var/www/html/gynic/gynik
+
+          # Use rsync to deploy code to the server without --delete flag
+          rsync -avz ./ /var/www/html/gynic/gynik/
+          
+    - name: Clean up
+      run: |
+        echo "Deployment completed successfully!"
+
