@@ -20,7 +20,7 @@ jobs:
 
     - name: Ensure the directory exists on the server
       run: |
-        ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@100.27.216.122 << 'EOF'
+        ssh -o StrictHostKeyChecking=no ${{ secrets.EC2-USER }}@100.27.216.122 << 'EOF'
           mkdir -p /var/www/html/gynic/gynik
         EOF
 
